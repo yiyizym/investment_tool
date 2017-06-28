@@ -1,7 +1,16 @@
 <template>
   <div id="app">
-    <div class="head">logo</div>
-    <el-row :gutter="20">
+    <header>
+      <div class="container">
+        <h1 class="title">Logo</h1>
+        <span class="wrapper">
+          <el-button type="primary" @click="handleSignin">登录</el-button>
+          <el-button type="primary" @click="handleSignup">注册</el-button>
+        </span>
+      </div>
+    </header>
+    <main>
+      <el-row :gutter="20">
       <el-col :span="4">
         <el-menu default-active="1" class="" @select="handleSelect">
           <el-menu-item index="1">
@@ -12,7 +21,7 @@
       </el-col>
       <el-col :span="20">
         <div class="content" v-show="shown == 1">
-          <el-table :data="record" border style="width: 100%" height="250">
+          <el-table :data="record" border style="width: 100%">
             <el-table-column fixed prop="date" label="日期">
             </el-table-column>
             <el-table-column prop="code" label="代码">
@@ -28,6 +37,7 @@
         <div class="content" v-show="shown == 2">2</div>
       </el-col>
     </el-row>
+    </main>
   </div>
 </template>
 
@@ -70,6 +80,13 @@ export default {
   methods: {
     handleSelect(index, path) {
       this.shown = index
+    },
+    handleSignin(){
+      console.log('sign in')
+    },
+    handleSignup(){
+      console.log('sign up')
+
     }
   }
 }
@@ -79,13 +96,27 @@ export default {
 body {
   margin: 0;
 }
-
-.head {
-  height: 50px;
-  line-height: 50px;
+header {
+    background-color: rgb(32, 160, 255);
+}
+header .container {
+    box-sizing: border-box;
+    max-width: 1080px;
+    display: flex;
+    height: 60px;
+    margin: 0 auto 20px;
+    align-items: center;
+    justify-content: space-between;
+}
+header .container h1 {
+  color: #fff;
 }
 
-.content {
-  padding-right: 20px;
+main {
+  max-width: 1080px;
+  margin: 0 auto;
 }
+
+
+
 </style>
