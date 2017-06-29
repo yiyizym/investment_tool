@@ -42,6 +42,8 @@
 </template>
 
 <script>
+import backend from './backend.js';
+
 export default {
   data() {
     return {
@@ -63,6 +65,13 @@ export default {
         actual: '1450'
       }]
     }
+  },
+
+  mounted() {
+    backend.init();
+    // backend.test().then(function(){
+    //   alert('LeanCloud Rocks!');
+    // });
   },
 
   computed: {
@@ -116,7 +125,5 @@ main {
   max-width: 1080px;
   margin: 0 auto;
 }
-
-
 
 </style>
