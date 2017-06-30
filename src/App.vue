@@ -34,7 +34,8 @@
             </el-table-column>
           </el-table>
         </div>
-        <div class="content" v-show="shown == 2">2</div>
+        <div class="content" v-show="shown == 2">
+        </div>
       </el-col>
     </el-row>
     </main>
@@ -43,6 +44,7 @@
 
 <script>
 import backend from './backend.js';
+import SignUp from './SignUp.vue';
 
 export default {
   data() {
@@ -95,9 +97,38 @@ export default {
     },
     handleSignup(){
       console.log('sign up')
+      const h = this.$createElement;
+        this.$msgbox({
+          title: '消息',
+          message: h(SignUp),
+          showCancelButton: true,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          beforeClose: (action, instance, done) => {
+            if (action === 'confirm') {
+              instance.confirmButtonLoading = true;
+              instance.confirmButtonText = '执行中...';
+              setTimeout(() => {
+                done();
+                setTimeout(() => {
+                  instance.confirmButtonLoading = false;
+                }, 300);
+              }, 3000);
+            } else {
+              done();
+            }
+          }
+        }).then(action => {
+          this.$message({
+            type: 'info',
+            message: 'action: ' + action
+          });
+        });
 
     }
-  }
+  },
+
+  components: {SignUp}
 }
 </script>
 
