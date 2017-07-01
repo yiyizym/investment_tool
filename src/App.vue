@@ -4,8 +4,10 @@
       <div class="container">
         <h1 class="title">Logo</h1>
         <span class="wrapper">
-          <el-button type="primary" @click="handleSignin">登录</el-button>
-          <el-button type="primary" @click="handleSignup">注册</el-button>
+          <el-button type="primary" v-show="!isLogIned" @click="handleSignIn">登录</el-button>
+          <el-button type="primary" v-show="!isLogIned" @click="handleSignUp">注册</el-button>
+          <el-button type="primary" v-show="isLogIned">{{userName}}</el-button>
+          <el-button type="primary" v-show="isLogIned" @click="handleSignOut">退出</el-button>
         </span>
       </div>
     </header>
@@ -44,11 +46,13 @@
 
 <script>
 import backend from './backend.js';
-import SignUp from './SignUp.vue';
+import SignUp from './components/SignUp.vue';
+import SignIn from './components/SignIn.vue';
 
 export default {
   data() {
     return {
+      userName: '',
       shown: 1,
       data: [{
         date: '2016-05-03',
@@ -74,6 +78,10 @@ export default {
     // backend.test().then(function(){
     //   alert('LeanCloud Rocks!');
     // });
+    var currentUser = backend.getCurrentUser();
+    if(currentUser){
+      this.userName = currentUser.getEmail();
+    }
   },
 
   computed: {
@@ -85,6 +93,9 @@ export default {
           return item;
         }).reverse()
 
+      },
+      isLogIned: function(){
+        return this.userName != '';
       }
   },
 
@@ -92,13 +103,77 @@ export default {
     handleSelect(index, path) {
       this.shown = index
     },
-    handleSignin(){
+    handleSignIn(){
       console.log('sign in')
+      const h = this.$createElement;
+      this.$msgbox({
+        title: '登录',
+        message: h(SignIn),
+        showCancelButton: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        beforeClose: (action, instance, done) => {
+          if(action === 'cancel'){
+            return done();
+          }
+          let signInInstance = instance.$slots['default'][0].componentInstance;
+          if(signInInstance.isValid() === false){
+            return;
+          }
+          instance.confirmButtonLoading = true;
+          instance.confirmButtonText = '提交中...';
+          setTimeout(() => {
+            done();
+            setTimeout(() => {
+              instance.confirmButtonLoading = false;
+            }, 300);
+          },1000);
+        },
+        callback: (action, instance) => {
+          let signInInstance = instance.$slots['default'][0].componentInstance;
+
+          if(action === 'cancel'){
+            signInInstance.reset();
+            return ;
+          }
+
+          if(signInInstance.forgottenPassword){
+            backend
+              .resetPassword(signInInstance.data.email)
+              .then(success => {
+                this.$message({
+                  type: 'success',
+                  message: '重置密码的邮件已发送到你的邮箱，请查收'
+                });
+              }, error => {
+                this.$message({
+                  type: 'error',
+                  message: error.message
+                });
+              })
+          }else{
+            backend
+              .signIn(signInInstance.data.email, signInInstance.data.password)
+              .then(loginedUser => {
+                this.$message({
+                  type: 'success',
+                  message: '登录成功'
+                });
+                this.userName = loginedUser.getEmail();
+              },error => {
+                this.$message({
+                  type: 'error',
+                  message: error.message
+                });
+              });
+          }
+          signInInstance.reset();
+        }
+      });
     },
-    handleSignup(){
+    handleSignUp(){
       console.log('sign up')
       const h = this.$createElement;
-      var formInstance = void 0;
       this.$msgbox({
         title: '注册',
         message: h(SignUp),
@@ -109,11 +184,10 @@ export default {
           if(action === 'cancel'){
             return done();
           }
-          formInstance = instance.$slots['default'][0].componentInstance;
-          if(formInstance.isValid() === false){
-            return;
+          let signUpInstance = instance.$slots['default'][0].componentInstance;          
+          if(signUpInstance.isValid() === false){
+            return ;
           }
-
           instance.confirmButtonLoading = true;
           instance.confirmButtonText = '提交中...';
           setTimeout(() => {
@@ -122,23 +196,50 @@ export default {
               instance.confirmButtonLoading = false;
             }, 300);
           },1000);
-        }
-      }).then((action) => {
-        backend
-          .signUp(formInstance.data.email, formInstance.data.password)
-          .then(loginedUser => {
-            this.$message({
-              type: 'info',
-              message: '注册成功，登录前请先验证邮箱'
-            });
-          },error => {
-            this.$message({
-              type: 'error',
-              message: error.message
-            });
-          });
+        },
+        callback: (action, instance) => {
+          let signUpInstance = instance.$slots['default'][0].componentInstance;  
 
+          if(action === 'cancel'){
+            return ;
+          }
+          
+          backend
+            .signUp(signUpInstance.data.email, signUpInstance.data.password)
+            .then(loginedUser => {
+              this.$message({
+                type: 'info',
+                message: '注册成功，登录前请先验证邮箱'
+              });
+            },error => {
+              this.$message({
+                type: 'error',
+                message: error.message
+              });
+            });
+
+          signUpInstance.reset();
+          
+        }
       });
+    },
+    handleSignOut(){
+      this.$confirm('你确定要退出当前账号吗?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'info',
+          callback: (action, instance) => {
+            if(action === 'confirm'){
+              backend.signOut();
+              this.userName = '';
+              this.$message({
+                type: 'success',
+                message: '你已成功退出'
+              })
+            }
+          }
+        })
+      
     }
   }
 

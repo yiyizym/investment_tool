@@ -25,8 +25,14 @@ export default {
     signIn(username, password){
         return AV.User.logIn(username, password);
     },
-    currentUser(){
-        return this._user;
+    signOut(){
+        AV.User.logOut();
+    },
+    getCurrentUser(){
+        return AV.User.current();
+    },
+    resetPassword(email){
+        return AV.User.requestPasswordReset(email);
     },
     test(){
         let TestObject = AV.Object.extend('TestObject');

@@ -33,7 +33,7 @@ export default {
             this.$refs['form'].validate((valid)=> isValid = valid);
             return isValid;
         },
-        resetForm(formName) {
+        reset() {
             this.$refs['form'].resetFields();
         }
     }
