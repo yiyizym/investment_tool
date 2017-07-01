@@ -12,10 +12,10 @@ export default {
         this._user = new AV.User();
     },
 
-    signUp(username, email, password){
-        this._user.setUsername(username);
-        this._user.setPassword(password);
+    signUp(email, password){
+        this._user.setUsername(email);
         this._user.setEmail(email);
+        this._user.setPassword(password);
         return this._user.signUp();
         // .then(function (loginedUser) {
         // }, (function (error) {

@@ -98,37 +98,50 @@ export default {
     handleSignup(){
       console.log('sign up')
       const h = this.$createElement;
-        this.$msgbox({
-          title: '消息',
-          message: h(SignUp),
-          showCancelButton: true,
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          beforeClose: (action, instance, done) => {
-            if (action === 'confirm') {
-              instance.confirmButtonLoading = true;
-              instance.confirmButtonText = '执行中...';
-              setTimeout(() => {
-                done();
-                setTimeout(() => {
-                  instance.confirmButtonLoading = false;
-                }, 300);
-              }, 3000);
-            } else {
-              done();
-            }
+      var formInstance = void 0;
+      this.$msgbox({
+        title: '注册',
+        message: h(SignUp),
+        showCancelButton: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        beforeClose: (action, instance, done) => {
+          if(action === 'cancel'){
+            return done();
           }
-        }).then(action => {
-          this.$message({
-            type: 'info',
-            message: 'action: ' + action
+          formInstance = instance.$slots['default'][0].componentInstance;
+          if(formInstance.isValid() === false){
+            return;
+          }
+
+          instance.confirmButtonLoading = true;
+          instance.confirmButtonText = '提交中...';
+          setTimeout(() => {
+            done();
+            setTimeout(() => {
+              instance.confirmButtonLoading = false;
+            }, 300);
+          },1000);
+        }
+      }).then((action) => {
+        backend
+          .signUp(formInstance.data.email, formInstance.data.password)
+          .then(loginedUser => {
+            this.$message({
+              type: 'info',
+              message: '注册成功，登录前请先验证邮箱'
+            });
+          },error => {
+            this.$message({
+              type: 'error',
+              message: error.message
+            });
           });
-        });
 
+      });
     }
-  },
+  }
 
-  components: {SignUp}
 }
 </script>
 

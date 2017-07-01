@@ -1,14 +1,10 @@
 <template>
-    <el-form :model="signUpForm" :rules="rules" ref="signUpForm" label-width="100px" class="demo-signUpForm">
+    <el-form :model="data" :rules="rules" ref="form" label-width="100px">
         <el-form-item label="邮箱" prop="email">
-            <el-input v-model="signUpForm.email"></el-input>
+            <el-input v-model="data.email"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
-            <el-input v-model="signUpForm.password"></el-input>
-        </el-form-item>
-        <el-form-item>
-            <el-button type="primary" @click="submitForm('signUpForm')">立即创建</el-button>
-            <el-button @click="resetForm('signUpForm')">重置</el-button>
+            <el-input type="password" v-model="data.password" auto-complete="off"></el-input>
         </el-form-item>
     </el-form>
 </template>
@@ -16,30 +12,29 @@
 export default {
     data() {
         return {
-            signUpForm: {
+            data: {
                 email: '',
                 password: ''
             },
             rules: {
                 email: [
-                    { type: 'email', required: true, message: '请输入正确的邮箱', trigger: 'blur' }
+                    { type: 'email', required: true, message: '请输入正确的邮箱', trigger: 'blur' },
+                ],
+                password: [
+                    { required: true, message: '请输入正确密码', trigger: 'blur' },
+                    { min: 6, message: '长度至少 6 个字符', trigger: 'blur' }
                 ]
             }
         }
     },
     methods: {
-        submitForm(formName) {
-            this.$refs[formName].validate((valid) => {
-                if (valid) {
-                    alert('submit!');
-                } else {
-                    console.log('error submit!!');
-                    return false;
-                }
-            });
+        isValid(){
+            let isValid = false;
+            this.$refs['form'].validate((valid)=> isValid = valid);
+            return isValid;
         },
         resetForm(formName) {
-            this.$refs[formName].resetFields();
+            this.$refs['form'].resetFields();
         }
     }
 }
