@@ -34,7 +34,7 @@ export default {
     resetPassword(email){
         return AV.User.requestPasswordReset(email);
     },
-    getFundHistory(userName){
+    getFundHistory(){
         let Fund = AV.Object.extend('Fund');
         var query = new AV.Query(Fund);
         return query
@@ -49,6 +49,31 @@ export default {
                                             'suggestedAmount': obj.get('suggestedAmount'),
                                             'actualAmount': obj.get('actualAmount'),
                                             'price': obj.get('price')
+                                        })
+                                    )
+                            )
+                    )
+                    .catch(resp => {
+                        console.log(resp.message)
+                        return [];
+                    })
+    },
+
+    getCandidates(){
+        let Candidate = AV.Object.extend('Candidate');
+        var query = new AV.Query(Candidate);
+        return query
+                    .find()
+                    .then(resp => 
+                            (resp.map(obj => 
+                                        ({
+                                            'name': obj.get('name'),
+                                            'code': obj.get('code'),
+                                            'date': obj.get('date'),
+                                            'earningToPrice': obj.get('earningToPrice'),
+                                            'priceToBook': obj.get('priceToBook'),
+                                            'dividendYieldRatio': obj.get('dividendYieldRatio'),
+                                            'returnOnEquity': obj.get('returnOnEquity')
                                         })
                                     )
                             )
