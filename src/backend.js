@@ -34,14 +34,28 @@ export default {
     resetPassword(email){
         return AV.User.requestPasswordReset(email);
     },
-    test(){
-        let TestObject = AV.Object.extend('TestObject');
-        let testObject = new TestObject();
-        return testObject.save({
-          words: 'Hello World!'
-        });
-        // .then(function(object) {
-        //   alert('LeanCloud Rocks!');
-        // })
+    getFundHistory(userName){
+        let Fund = AV.Object.extend('Fund');
+        var query = new AV.Query(Fund);
+        return query
+                    .ascending('boughtDate')
+                    .find()
+                    .then(resp => 
+                            (resp.map(obj => 
+                                        ({
+                                            'name': obj.get('name'),
+                                            'code': obj.get('code'),
+                                            'boughtDate': obj.get('boughtDate'),
+                                            'suggestedAmount': obj.get('suggestedAmount'),
+                                            'actualAmount': obj.get('actualAmount'),
+                                            'price': obj.get('price')
+                                        })
+                                    )
+                            )
+                    )
+                    .catch(resp => {
+                        console.log(resp.message)
+                        return [];
+                    })
     }
 }

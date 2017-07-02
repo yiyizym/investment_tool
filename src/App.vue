@@ -14,7 +14,7 @@
     <main>
       <el-row :gutter="20">
       <el-col :span="4">
-        <el-menu default-active="1" class="" @select="handleSelect">
+        <el-menu :default-active="shown" class="" @select="handleSelect">
           <el-menu-item index="1">
             <i class="el-icon-menu"></i>定投记录</el-menu-item>
           <el-menu-item index="2">
@@ -22,21 +22,25 @@
         </el-menu>
       </el-col>
       <el-col :span="20">
-        <div class="content" v-show="shown == 1">
+        <div class="content" v-show="shown == '1'">
           <el-table :data="record" border style="width: 100%">
-            <el-table-column fixed prop="date" label="日期">
+            <el-table-column fixed prop="boughtDate" label="日期">
+            </el-table-column>
+            <el-table-column prop="name" label="名称">
             </el-table-column>
             <el-table-column prop="code" label="代码">
             </el-table-column>
-            <el-table-column prop="plan" label="计划买入(元)">
+            <el-table-column prop="price" label="价格">
             </el-table-column>
-            <el-table-column prop="actual" label="实际买入(元)">
+            <el-table-column prop="suggestedAmount" label="计划买入">
+            </el-table-column>
+            <el-table-column prop="actualAmount" label="实际买入">
             </el-table-column>
             <el-table-column prop="addUp" label="累计">
             </el-table-column>
           </el-table>
         </div>
-        <div class="content" v-show="shown == 2">
+        <div class="content" v-show="shown == '2'">
         </div>
       </el-col>
     </el-row>
@@ -53,45 +57,27 @@ export default {
   data() {
     return {
       userName: '',
-      shown: 1,
-      data: [{
-        date: '2016-05-03',
-        code: '510690',
-        plan: '1500',
-        actual: '1450'
-      },{
-        date: '2016-06-03',
-        code: '510690',
-        plan: '1500',
-        actual: '1450'
-      },{
-        date: '2016-07-03',
-        code: '510690',
-        plan: '1500',
-        actual: '1450'
-      }]
+      shown: '1',
+      data: []
     }
   },
 
   mounted() {
     backend.init();
-    // backend.test().then(function(){
-    //   alert('LeanCloud Rocks!');
-    // });
-    var currentUser = backend.getCurrentUser();
-    if(currentUser){
-      this.userName = currentUser.getEmail();
-    }
+    
+    this.loadPage();
   },
 
   computed: {
       record: function(){
         var addUp = 0
         return this.data.map(function(item, index, data){
-          index ? (addUp = +item['actual'] + +data[index - 1]['addUp']) : (addUp += +item['actual']);
+          let actualAmount = Number(item['actualAmount']) || 0
+          index ? (addUp = actualAmount + +data[index - 1]['addUp']) : (addUp += actualAmount);
           item['addUp'] = addUp;
+          item['boughtDate'] = item['boughtDate'].toLocaleDateString();
           return item;
-        }).reverse()
+        }).reverse();
 
       },
       isLogIned: function(){
@@ -101,7 +87,7 @@ export default {
 
   methods: {
     handleSelect(index, path) {
-      this.shown = index
+      this.shown = String(index);
     },
     handleSignIn(){
       console.log('sign in')
@@ -159,7 +145,7 @@ export default {
                   type: 'success',
                   message: '登录成功'
                 });
-                this.userName = loginedUser.getEmail();
+                this.loadPage();
               },error => {
                 this.$message({
                   type: 'error',
@@ -231,7 +217,7 @@ export default {
           callback: (action, instance) => {
             if(action === 'confirm'){
               backend.signOut();
-              this.userName = '';
+              this.resetPage();
               this.$message({
                 type: 'success',
                 message: '你已成功退出'
@@ -240,7 +226,31 @@ export default {
           }
         })
       
-    }
+    },
+    loadPage(){
+      this.shown = '1';
+      this.setUser();
+      this.getFundHistory();
+    },
+    resetPage(){
+      this.userName = '';
+      this.shown = '1';
+      this.data = [];
+    },
+    setUser(){
+      var currentUser = backend.getCurrentUser();
+      if(currentUser){
+        this.userName = currentUser.getEmail();
+      }
+    },
+    getFundHistory(){
+      if(!this.isLogIned){
+        return;
+      }
+      backend.getFundHistory().then(data => {
+        this.data = data;
+      })
+    },
   }
 
 }
