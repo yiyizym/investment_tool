@@ -41,30 +41,7 @@
           </el-table>
         </div>
         <div class="content" v-show="shown == '2'">
-          <el-table :data="recommend" border style="width: 100%">
-            <el-table-column fixed prop="date" label="日期">
-            </el-table-column>
-            <el-table-column prop="name" label="名称">
-            </el-table-column>
-            <el-table-column prop="code" label="代码">
-            </el-table-column>
-            <el-table-column prop="earningToPrice" label="盈利收益率(%)">
-            </el-table-column>
-            <el-table-column prop="priceToBook" label="市净率">
-            </el-table-column>
-            <el-table-column prop="dividendYieldRatio" label="股息率(%)">
-            </el-table-column>
-            <el-table-column prop="returnOnEquity" label="股本收益率(%)">
-            </el-table-column>
-            <el-table-column
-              fixed="right"
-              label="操作"
-              width="120">
-              <template scope="scope">
-                <el-button @click="handleBuyIn" type="text" size="small">买入</el-button>
-              </template>
-            </el-table-column>
-          </el-table>
+          <Candidate :candidates="candidates"></Candidate>
         </div>
       </el-col>
     </el-row>
@@ -76,6 +53,7 @@
 import backend from './backend.js';
 import SignUp from './components/SignUp.vue';
 import SignIn from './components/SignIn.vue';
+import Candidate from './components/Candidate.vue';
 
 export default {
   data() {
@@ -108,18 +86,12 @@ export default {
         }).reverse();
 
       },
-      recommend: function(){
-        var newItem = {};
-        return this.candidates.map(function(item, index, data){
-          newItem = Object.assign({}, item);
-          newItem['date'] = newItem['date'].toLocaleDateString();
-          return newItem;
-        });
-      },
       isLogIned: function(){
         return this.userName != '';
       }
   },
+
+  components: {Candidate},
 
   methods: {
     handleSelect(index, path) {
@@ -297,37 +269,34 @@ export default {
         this.candidates = data;
       })
     },
-    handleBuyIn(){
-      console.log('buy in');
-    }
   }
 
 }
 </script>
 
 <style>
-body {
-  margin: 0;
-}
-header {
-    background-color: rgb(32, 160, 255);
-}
-header .container {
-    box-sizing: border-box;
-    max-width: 1080px;
-    display: flex;
-    height: 60px;
-    margin: 0 auto 20px;
-    align-items: center;
-    justify-content: space-between;
-}
-header .container h1 {
-  color: #fff;
-}
+  body {
+    margin: 0;
+  }
+  header {
+      background-color: rgb(32, 160, 255);
+  }
+  header .container {
+      box-sizing: border-box;
+      max-width: 1080px;
+      display: flex;
+      height: 60px;
+      margin: 0 auto 20px;
+      align-items: center;
+      justify-content: space-between;
+  }
+  header .container h1 {
+    color: #fff;
+  }
 
-main {
-  max-width: 1080px;
-  margin: 0 auto;
-}
+  main {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
 
 </style>
