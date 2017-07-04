@@ -25,6 +25,9 @@
 <script>
 export default {
     props: ['candidates'],
+    mounted(){
+        this._setNationalDebt();
+    },
     computed: {
         recommend: function () {
             var newItem = {};
@@ -35,22 +38,28 @@ export default {
             });
         }
     },
+    
     methods: {
         handleBuyIn() {
             console.log('buy in');
         },
         tableRowClassName(row, index) {
-            console.log(row);
-            if (row['code'] == '510880') {
-                return 'info-row';
+            // 盈利收效率大于 10 且 大于 2 倍的十年期国债利率
+            if (row['earningToPrice'] > 10 && row['earningToPrice'] > 2 * this.nationalDebt) {
+                return 'recommend-row';
             }
         },
+        _setNationalDebt(){
+            // TODO get from backend
+            this.nationalDebt = 3.55;
+        },
+
     }
 }
 </script>
 
 <style>
-.el-table .info-row {
+.el-table .recommend-row {
     background: #c9e5f5;
 }
 </style>

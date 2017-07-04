@@ -63,6 +63,7 @@ export default {
         let Candidate = AV.Object.extend('Candidate');
         var query = new AV.Query(Candidate);
         return query
+                    .addDescending('earningToPrice')
                     .find()
                     .then(resp => 
                             (resp.map(obj => 
