@@ -14,7 +14,7 @@
     <main>
       <el-row :gutter="20">
       <el-col :span="4">
-        <el-menu :default-active="shown" class="" @select="handleSelect">
+        <el-menu :default-active="shown" @select="handleSelect">
           <el-menu-item index="1">
             <i class="el-icon-menu"></i>定投记录</el-menu-item>
           <el-menu-item index="2">
@@ -41,7 +41,7 @@
           </el-table>
         </div>
         <div class="content" v-show="shown == '2'">
-          <Candidate :candidates="candidates"></Candidate>
+          <Candidate :candidates="candidates" :history="history"></Candidate>
         </div>
       </el-col>
     </el-row>
@@ -59,7 +59,7 @@ export default {
   data() {
     return {
       userName: '',
-      shown: '1',
+      shown: '',
       history: [],
       candidates: []
     }
@@ -236,7 +236,7 @@ export default {
       
     },
     loadPage(){
-      this.shown = '1';
+      this.shown = '2';
       this.setUser();
       this.getFundHistory();
       this.getCandidates();
