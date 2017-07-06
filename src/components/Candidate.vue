@@ -25,8 +25,8 @@
 <script>
 import util from '../util.js';
 export default {
-    props: ['candidates','history'],
-    mounted(){
+    props: ['candidates', 'history'],
+    mounted() {
         this._setNationalDebt();
     },
     computed: {
@@ -39,15 +39,41 @@ export default {
             });
         }
     },
-    
+
     methods: {
         handleBuyIn(index, row) {
             console.log('buy in');
             let currentPE = 1 / row['earningToPrice'] * 100,
                 code = row['code'],
                 firstBought = this.history.find((item) => item['code'] == code), // TODO 没找到的情况要考虑
-                monthsElapsed = util.getMonthsElapsed(firstBought['boughtDate'],(new Date())),
-                recommendAmount = Number(firstBought['actualAmount']) * Math.pow(1.01,monthsElapsed) * 10 / currentPE;
+                monthsElapsed = util.getMonthsElapsed(firstBought['boughtDate'], (new Date())),
+                recommendAmount = Number(firstBought['actualAmount']) * Math.pow(1.01, monthsElapsed) * 10 / currentPE;
+                recommendAmount = Math.ceil(recommendAmount);
+                // 显示有点怪，用 $msgbox 定制
+            this.$prompt(`建议买入量: ${recommendAmount}`, '填写实际买入量', {
+                confirmButtonText: 'OK',
+                cancelButtonText: 'Cancel',
+                inputValue: recommendAmount,
+                inputValidator: (value) => {
+                    // https://stackoverflow.com/questions/18082/validate-decimal-numbers-in-javascript-isnumeric
+                    return !isNaN(parseFloat(value)) && isFinite(value) && value > 0;
+                },
+                inputErrorMessage: '请输入正确的数字',
+                inputPlaceholder: '大于 0 的数字'
+            }).then(({value}) => {
+                //TODO 给撤销的机会
+                //TODO
+                // backend.buy(row, value)
+                this.$message({
+                    type: 'success',
+                    message: `你买入了 ${value} 元 ${code} 基金`
+                });
+            }).catch(() => {
+                this.$message({
+                    type: 'info',
+                    message: 'Input canceled'
+                });
+            });
         },
         tableRowClassName(row, index) {
             // 盈利收效率大于 10 且 大于 2 倍的十年期国债利率 推荐
@@ -56,7 +82,7 @@ export default {
                 return 'recommend-row';
             }
             // 盈利收效率大于 5 （假设余额宝的收益是 5% ）持有
-            else if(row['earningToPrice'] > 5){
+            else if (row['earningToPrice'] > 5) {
                 return 'hold-row';
             }
             // 否则 卖出
@@ -64,7 +90,7 @@ export default {
                 return 'sell-row';
             }
         },
-        _setNationalDebt(){
+        _setNationalDebt() {
             // TODO get from backend
             this.nationalDebt = 3.55;
         },
@@ -77,9 +103,11 @@ export default {
 .el-table .recommend-row {
     background: #c9e5f5;
 }
+
 .el-table .hold-row {
     /*background: #c9e5f5;*/
 }
+
 .el-table .sell-row {
     background: #f38585;
 }
