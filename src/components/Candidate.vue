@@ -24,6 +24,7 @@
 
 <script>
 import util from '../util.js';
+import backend from '../backend.js';
 export default {
     props: ['candidates', 'history'],
     mounted() {
@@ -47,13 +48,13 @@ export default {
                 code = row['code'],
                 firstBought = this.history.find((item) => item['code'] == code), // TODO 没找到的情况要考虑
                 monthsElapsed = util.getMonthsElapsed(firstBought['boughtDate'], (new Date())),
-                recommendAmount = Number(firstBought['actualAmount']) * Math.pow(1.01, monthsElapsed) * 10 / currentPE;
-                recommendAmount = Math.ceil(recommendAmount);
+                suggestedAmount = Number(firstBought['actualAmount']) * Math.pow(1.01, monthsElapsed) * 10 / currentPE;
+                suggestedAmount = Math.ceil(suggestedAmount);
                 // 显示有点怪，用 $msgbox 定制
-            this.$prompt(`建议买入量: ${recommendAmount}`, '填写实际买入量', {
+            this.$prompt(`建议买入量: ${suggestedAmount}`, '填写实际买入量', {
                 confirmButtonText: 'OK',
                 cancelButtonText: 'Cancel',
-                inputValue: recommendAmount,
+                inputValue: suggestedAmount,
                 inputValidator: (value) => {
                     // https://stackoverflow.com/questions/18082/validate-decimal-numbers-in-javascript-isnumeric
                     return !isNaN(parseFloat(value)) && isFinite(value) && value > 0;
@@ -62,12 +63,17 @@ export default {
                 inputPlaceholder: '大于 0 的数字'
             }).then(({value}) => {
                 //TODO 给撤销的机会
-                //TODO
-                // backend.buy(row, value)
-                this.$message({
-                    type: 'success',
-                    message: `你买入了 ${value} 元 ${code} 基金`
-                });
+                backend
+                    .buy(row, suggestedAmount, value)
+                    .then(fund => {
+                        this.$message({
+                            type: 'success',
+                            message: `你买入了 ${value} 元 ${code} 基金`
+                        });
+                    })
+                    .catch((error) => {
+                        console.error('Failed to create new object, with error message: ' + error.message);
+                    })
             }).catch(() => {
                 this.$message({
                     type: 'info',

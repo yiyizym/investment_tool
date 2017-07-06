@@ -10,6 +10,7 @@ export default {
             appKey: APP_KEY
         });
         this._user = new AV.User();
+        this._Fund = AV.Object.extend('Fund');
     },
 
     signUp(email, password){
@@ -35,8 +36,7 @@ export default {
         return AV.User.requestPasswordReset(email);
     },
     getFundHistory(){
-        let Fund = AV.Object.extend('Fund');
-        var query = new AV.Query(Fund);
+        var query = new AV.Query(this._Fund);
         return query
                     .ascending('boughtDate')
                     .find()
@@ -83,5 +83,23 @@ export default {
                         console.log(resp.message)
                         return [];
                     })
+    },
+
+    buy(data, suggestedAmount, actualAmount){
+        var fund = new (this._Fund)();
+        fund.set('name', data.name);
+        fund.set('code', data.code);
+        fund.set('boughtDate', new Date());
+        fund.set('suggestedAmount', suggestedAmount);
+        fund.set('actualAmount', actualAmount);
+        fund.set('price', data.price);
+        return fund.save();
+        // .then(function (fund) {
+        //     // 成功保存之后，执行其他逻辑.
+        //     console.log('New object created with objectId: ' + fund.id);
+        // }, function (error) {
+        //     // 异常处理
+        //     console.error('Failed to create new object, with error message: ' + error.message);
+        // });
     }
 }
