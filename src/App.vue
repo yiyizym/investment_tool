@@ -41,7 +41,11 @@
           </el-table>
         </div>
         <div class="content" v-show="shown == '2'">
-          <Candidate :candidates="candidates" :history="history"></Candidate>
+          <Candidate
+            :candidates="candidates" 
+            :history="history"
+            :isLogIned="isLogIned"
+            v-on:buy="buy"></Candidate>
         </div>
       </el-col>
     </el-row>
@@ -269,6 +273,31 @@ export default {
         this.candidates = data;
       })
     },
+    buy(row, suggestedAmount, value){
+      backend
+        .buy(row, suggestedAmount, value)
+        .then(fund => {
+          this.insertHistory(row, suggestedAmount, value);
+          this.$message({
+              type: 'success',
+              message: `你买入了 ${value} 元 ${row['code']} 基金`
+          });
+        })
+        .catch((error) => {
+            console.error('Failed to create new object, with error message: ' + error.message);
+        })
+    },
+
+    insertHistory(row, suggestedAmount, value){
+      this.history.push({
+        'name': row['name'],
+        'code': row['code'],
+        'boughtDate': (new Date()),
+        'suggestedAmount': suggestedAmount,
+        'actualAmount': value,
+        'price': row['price']
+      })
+    }
   }
 
 }

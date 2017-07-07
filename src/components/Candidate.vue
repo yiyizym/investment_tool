@@ -14,7 +14,7 @@
         </el-table-column>
         <el-table-column prop="returnOnEquity" label="股本收益率(%)">
         </el-table-column>
-        <el-table-column fixed="right" label="操作" width="120">
+        <el-table-column v-show="isLogIned" fixed="right" label="操作" width="120">
             <template scope="scope">
                 <el-button @click="handleBuyIn(scope.$index, scope.row)" type="text" size="small">买入</el-button>
             </template>
@@ -26,7 +26,7 @@
 import util from '../util.js';
 import backend from '../backend.js';
 export default {
-    props: ['candidates', 'history'],
+    props: ['candidates', 'history', 'isLogIned'],
     mounted() {
         this._setNationalDebt();
     },
@@ -62,18 +62,7 @@ export default {
                 inputErrorMessage: '请输入正确的数字',
                 inputPlaceholder: '大于 0 的数字'
             }).then(({value}) => {
-                //TODO 给撤销的机会
-                backend
-                    .buy(row, suggestedAmount, value)
-                    .then(fund => {
-                        this.$message({
-                            type: 'success',
-                            message: `你买入了 ${value} 元 ${code} 基金`
-                        });
-                    })
-                    .catch((error) => {
-                        console.error('Failed to create new object, with error message: ' + error.message);
-                    })
+                this.$emit('buy', row, suggestedAmount, value)
             }).catch(() => {
                 this.$message({
                     type: 'info',
