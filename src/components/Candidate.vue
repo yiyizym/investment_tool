@@ -41,7 +41,11 @@ export default {
             console.log('buy in');
             let currentPE = row['priceToEarning'],
                 code = row['code'],
-                firstBought = this.history.find((item) => item['code'] == code), // TODO 没找到的情况要考虑
+                defaultFirstBought = {
+                    boughtDate: null,
+                    actualAmount: 1000
+                },
+                firstBought = this.history.find((item) => item['code'] == code) || defaultFirstBought,
                 monthsElapsed = util.getMonthsElapsed(firstBought['boughtDate'], (new Date())),
                 suggestedAmount = Number(firstBought['actualAmount']) * Math.pow(1.01, monthsElapsed) * 10 / currentPE;
                 suggestedAmount = Math.ceil(suggestedAmount);

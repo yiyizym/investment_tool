@@ -121,7 +121,7 @@ export default {
     },
 
     saveToCache(pricedCandidates){
-        let scope = localStorage.getItem('investmentTool') || {};
+        let scope = {};
         scope[`pricedCandidates:${this.todayString()}`] = pricedCandidates;
         localStorage.setItem('investmentTool',JSON.stringify(scope));
         return pricedCandidates;
