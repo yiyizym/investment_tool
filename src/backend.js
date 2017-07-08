@@ -1,4 +1,5 @@
 import AV from 'leancloud-storage';
+import $ from 'jquery';
 
 const APP_ID = 'H71odW5TA2M5pGOzzvFlDOrh-gzGzoHsz';
 const APP_KEY = 'cXSh5ovrmSodyewR3cv4Oowf';
@@ -63,26 +64,83 @@ export default {
         let Candidate = AV.Object.extend('Candidate');
         var query = new AV.Query(Candidate);
         return query
-                    .addDescending('earningToPrice')
+                    .ascending('priceToEarning')
                     .find()
-                    .then(resp => 
-                            (resp.map(obj => 
-                                        ({
-                                            'name': obj.get('name'),
-                                            'code': obj.get('code'),
-                                            'date': obj.get('date'),
-                                            'earningToPrice': obj.get('earningToPrice'),
-                                            'priceToBook': obj.get('priceToBook'),
-                                            'dividendYieldRatio': obj.get('dividendYieldRatio'),
-                                            'returnOnEquity': obj.get('returnOnEquity')
-                                        })
-                                    )
-                            )
-                    )
+                    .then(resp => {
+                        return resp.map(obj => 
+                            ({
+                                'name': obj.get('name'),
+                                'code': obj.get('code'),
+                                'date': obj.get('date'),
+                                'priceToEarningRate': obj.get('priceToEarningRate')
+                            })
+                        );
+                    })
+                    .then(candidatesWithRate => {
+                        let candidatesWithPrice = this.getPricedCandidates(candidatesWithRate.map(item => item['code']))
+                        return {candidatesWithPrice, candidatesWithRate}
+                    })
+                    .then(this.getmergedCandidates)
                     .catch(resp => {
                         console.log(resp.message)
                         return [];
                     })
+
+    },
+
+    getPricedCandidates(codes){
+        var cached = void 0;
+        if((cached = this.getFromCache())){
+            return cached;
+        }
+        return Promise.all(codes.map(code => $.ajax({
+                                type: 'GET',
+                                dataType: 'jsonp',
+                                url: `http://yunhq.sse.com.cn:32041/v1/sh1/snap/${code}`
+                })))
+                .then(results => results.map(result => {
+                    return {
+                        code: result['code'],
+                        date: new Date(String(result['date']).replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3')),
+                        price: result['snap'][1]
+                    }
+                }))
+                .then(result => {
+                    return this.saveToCache(result);
+                });
+    },
+
+    getFromCache(){
+        let scope = localStorage.getItem('investmentTool');
+        if(!scope){
+            return void 0;
+        }else{
+            scope = JSON.parse(scope);
+        }
+        return scope[`pricedCandidates:${this.todayString()}`];
+    },
+
+    saveToCache(pricedCandidates){
+        let scope = localStorage.getItem('investmentTool') || {};
+        scope[`pricedCandidates:${this.todayString()}`] = pricedCandidates;
+        localStorage.setItem('investmentTool',JSON.stringify(scope));
+        return pricedCandidates;
+    },
+
+    getmergedCandidates({candidatesWithPrice, candidatesWithRate}){
+        let candidatesWithRateCopy = Object.assign([], candidatesWithRate);
+        return candidatesWithRateCopy.map(candidate => {
+            let pricedCandidate = candidatesWithPrice.find(item => candidate['code'] == item['code']) || {};
+            let price = Number(pricedCandidate['price']) || 0;
+            candidate['priceToEarning'] = Number(candidate['priceToEarningRate']) * price
+            candidate['earningToPrice'] = 1.0 / candidate['priceToEarning'] * 100;
+
+            return candidate;
+        })
+    },
+
+    todayString(){
+        return (new Date()).toISOString().slice(0,10).replace(/-/g,"");
     },
 
     buy(data, suggestedAmount, actualAmount){

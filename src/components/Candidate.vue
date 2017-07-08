@@ -8,12 +8,6 @@
         </el-table-column>
         <el-table-column prop="earningToPrice" label="盈利收益率(%)">
         </el-table-column>
-        <el-table-column prop="priceToBook" label="市净率">
-        </el-table-column>
-        <el-table-column prop="dividendYieldRatio" label="股息率(%)">
-        </el-table-column>
-        <el-table-column prop="returnOnEquity" label="股本收益率(%)">
-        </el-table-column>
         <el-table-column v-show="isLogIned" fixed="right" label="操作" width="120">
             <template scope="scope">
                 <el-button @click="handleBuyIn(scope.$index, scope.row)" type="text" size="small">买入</el-button>
@@ -36,6 +30,7 @@ export default {
             return this.candidates.map(function (item, index, data) {
                 newItem = Object.assign({}, item);
                 newItem['date'] = newItem['date'].toLocaleDateString();
+                newItem['earningToPrice'] = newItem['earningToPrice'].toFixed(2);
                 return newItem;
             });
         }
@@ -44,7 +39,7 @@ export default {
     methods: {
         handleBuyIn(index, row) {
             console.log('buy in');
-            let currentPE = 1 / row['earningToPrice'] * 100,
+            let currentPE = row['priceToEarning'],
                 code = row['code'],
                 firstBought = this.history.find((item) => item['code'] == code), // TODO 没找到的情况要考虑
                 monthsElapsed = util.getMonthsElapsed(firstBought['boughtDate'], (new Date())),
