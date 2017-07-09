@@ -40,6 +40,7 @@ export default {
         var query = new AV.Query(this._Fund);
         return query
                     .ascending('boughtDate')
+                    .equalTo('dependent', this.getCurrentUser())
                     .find()
                     .then(resp => 
                             (resp.map(obj => 
@@ -144,7 +145,7 @@ export default {
         return (new Date()).toISOString().slice(0,10).replace(/-/g,"");
     },
 
-    buy(data, suggestedAmount, actualAmount){
+    createFund(data, suggestedAmount, actualAmount){
         var fund = new (this._Fund)();
         fund.set('name', data.name);
         fund.set('code', data.code);
@@ -152,6 +153,13 @@ export default {
         fund.set('suggestedAmount', suggestedAmount);
         fund.set('actualAmount', actualAmount);
         fund.set('price', data.price);
+        fund.set('dependent', this.getCurrentUser());
+
+        var acl = new AV.ACL();
+        acl.setReadAccess(AV.User.current(),true);
+        acl.setWriteAccess(AV.User.current(),true);
+        fund.setACL(acl);
+        
         return fund.save();
         // .then(function (fund) {
         //     // 成功保存之后，执行其他逻辑.

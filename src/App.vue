@@ -275,7 +275,7 @@ export default {
     },
     buy(row, suggestedAmount, actualAmount){
       backend
-        .buy(row, suggestedAmount, actualAmount)
+        .createFund(row, suggestedAmount, actualAmount)
         .then(fund => {
           this.insertHistory(row, suggestedAmount, actualAmount);
           this.$message({
