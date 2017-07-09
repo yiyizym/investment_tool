@@ -134,6 +134,7 @@ export default {
             let price = Number(pricedCandidate['price']) || 0;
             candidate['priceToEarning'] = Number(candidate['priceToEarningRate']) * price
             candidate['earningToPrice'] = 1.0 / candidate['priceToEarning'] * 100;
+            candidate['price'] = price;
 
             return candidate;
         })

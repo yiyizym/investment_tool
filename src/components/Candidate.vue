@@ -41,31 +41,34 @@ export default {
             console.log('buy in');
             let currentPE = row['priceToEarning'],
                 code = row['code'],
+                price = row['price'],
                 defaultFirstBought = {
                     boughtDate: null,
-                    actualAmount: 1000
+                    actualAmount: 1000,
+                    price: 1
                 },
                 firstBought = this.history.find((item) => item['code'] == code) || defaultFirstBought,
                 monthsElapsed = util.getMonthsElapsed(firstBought['boughtDate'], (new Date())),
-                suggestedAmount = Number(firstBought['actualAmount']) * Math.pow(1.01, monthsElapsed) * 10 / currentPE;
-                suggestedAmount = Math.ceil(suggestedAmount);
+                suggestedTotal = firstBought['actualAmount'] * firstBought['price'] * Math.pow(1.01, monthsElapsed) * 10 / currentPE,
+                // 因为实际买入数量只能是 100 的倍数，所以计算出建议买入总价后，还得显示四舍五入成整百的建议买入量
+                suggestedAmount = Math.max(Math.round(suggestedTotal / price / 100.0) * 100, 100);
                 // 显示有点怪，用 $msgbox 定制
-            this.$prompt(`建议买入量: ${suggestedAmount}`, '填写实际买入量', {
+            this.$prompt(`建议买入 ${suggestedAmount} 股，总价: ${suggestedAmount * price} 元`, '填写实际买入数量（整百）', {
                 confirmButtonText: 'OK',
                 cancelButtonText: 'Cancel',
                 inputValue: suggestedAmount,
                 inputValidator: (value) => {
                     // https://stackoverflow.com/questions/18082/validate-decimal-numbers-in-javascript-isnumeric
-                    return !isNaN(parseFloat(value)) && isFinite(value) && value > 0;
+                    return !isNaN(parseFloat(value)) && isFinite(value) && value >= 100 && (value % 100 == 0);
                 },
-                inputErrorMessage: '请输入正确的数字',
-                inputPlaceholder: '大于 0 的数字'
+                inputErrorMessage: '请输入正确的整百数字',
+                inputPlaceholder: '至少是 100 的整百数字'
             }).then(({value}) => {
-                this.$emit('buy', row, suggestedAmount, value)
+                this.$emit('buy', row, suggestedAmount * price, value * price)
             }).catch(() => {
                 this.$message({
                     type: 'info',
-                    message: 'Input canceled'
+                    message: '你已取消买入'
                 });
             });
         },
