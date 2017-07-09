@@ -64,7 +64,7 @@ export default {
                 inputErrorMessage: '请输入正确的整百数字',
                 inputPlaceholder: '至少是 100 的整百数字'
             }).then(({value}) => {
-                this.$emit('buy', row, suggestedAmount * price, value * price)
+                this.$emit('buy', row, suggestedAmount, value)
             }).catch(() => {
                 this.$message({
                     type: 'info',

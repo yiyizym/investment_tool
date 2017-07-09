@@ -32,9 +32,9 @@
             </el-table-column>
             <el-table-column prop="price" label="价格">
             </el-table-column>
-            <el-table-column prop="suggestedAmount" label="计划买入">
+            <el-table-column prop="suggestedAmount" label="计划买入量">
             </el-table-column>
-            <el-table-column prop="actualAmount" label="实际买入">
+            <el-table-column prop="actualAmount" label="实际买入量">
             </el-table-column>
             <el-table-column prop="addUp" label="累计">
             </el-table-column>
@@ -83,9 +83,9 @@ export default {
           itemCopy['boughtDate'] = itemCopy['boughtDate'].toLocaleDateString();
           return itemCopy;
         }).map((item, index, data) => {
-          let actualAmount = Number(item['actualAmount']) || 0
-          index ? (addUp = actualAmount + +data[index - 1]['addUp']) : (addUp += actualAmount);
-          item['addUp'] = addUp;
+          let actualAmount = item['actualAmount'] || 0
+          index ? (addUp = actualAmount * item['price'] + data[index - 1]['addUp']) : (addUp += actualAmount * item['price']);
+          item['addUp'] = Math.round(addUp);
           return item;
         }).reverse();
 
@@ -273,14 +273,14 @@ export default {
         this.candidates = data;
       })
     },
-    buy(row, suggestedAmount, value){
+    buy(row, suggestedAmount, actualAmount){
       backend
-        .buy(row, suggestedAmount, value)
+        .buy(row, suggestedAmount, actualAmount)
         .then(fund => {
-          this.insertHistory(row, suggestedAmount, value);
+          this.insertHistory(row, suggestedAmount, actualAmount);
           this.$message({
               type: 'success',
-              message: `你买入了 ${value} 元 ${row['code']} 基金`
+              message: `你买入了 ${actualAmount * row['price']} 元 ${row['code']} 基金`
           });
         })
         .catch((error) => {
@@ -288,13 +288,13 @@ export default {
         })
     },
 
-    insertHistory(row, suggestedAmount, value){
+    insertHistory(row, suggestedAmount, actualAmount){
       this.history.push({
         'name': row['name'],
         'code': row['code'],
         'boughtDate': (new Date()),
         'suggestedAmount': suggestedAmount,
-        'actualAmount': value,
+        'actualAmount': actualAmount,
         'price': row['price']
       })
     }
