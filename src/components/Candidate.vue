@@ -53,7 +53,7 @@ export default {
                 // 因为实际买入数量只能是 100 的倍数，所以计算出建议买入总价后，还得显示四舍五入成整百的建议买入量
                 suggestedAmount = Math.max(Math.round(suggestedTotal / price / 100.0) * 100, 100);
                 // 显示有点怪，用 $msgbox 定制
-            this.$prompt(`建议买入 ${suggestedAmount} 股，总价: ${suggestedAmount * price} 元`, '填写实际买入数量（整百）', {
+            this.$prompt(`${code} 建议买入 ${suggestedAmount} 股，总价: ${suggestedAmount * price} 元`, '填写实际买入数量（整百）', {
                 confirmButtonText: 'OK',
                 cancelButtonText: 'Cancel',
                 inputValue: suggestedAmount,
