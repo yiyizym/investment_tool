@@ -23,27 +23,15 @@
       </el-col>
       <el-col :span="20">
         <div class="content" v-show="shown == '1'">
-          <el-table :data="record" border style="width: 100%">
-            <el-table-column fixed prop="boughtDate" label="日期">
-            </el-table-column>
-            <el-table-column prop="name" label="名称">
-            </el-table-column>
-            <el-table-column prop="code" label="代码">
-            </el-table-column>
-            <el-table-column prop="price" label="价格">
-            </el-table-column>
-            <el-table-column prop="suggestedAmount" label="计划买入量">
-            </el-table-column>
-            <el-table-column prop="actualAmount" label="实际买入量">
-            </el-table-column>
-            <el-table-column prop="addUp" label="累计">
-            </el-table-column>
-          </el-table>
+          <FundHistory
+            :history="record"
+            border
+            style="width: 100%"></FundHistory>
         </div>
         <div class="content" v-show="shown == '2'">
           <Candidate
             :candidates="candidates" 
-            :history="history"
+            :history="fundHistory"
             :isLogIned="isLogIned"
             v-on:buy="buy"></Candidate>
         </div>
@@ -58,13 +46,14 @@ import backend from './backend.js';
 import SignUp from './components/SignUp.vue';
 import SignIn from './components/SignIn.vue';
 import Candidate from './components/Candidate.vue';
+import FundHistory from './components/FundHistory.vue';
 
 export default {
   data() {
     return {
       userName: '',
       shown: '',
-      history: [],
+      fundHistory: [],
       candidates: []
     }
   },
@@ -78,7 +67,7 @@ export default {
   computed: {
       record: function(){
         var addUp = 0;
-        return this.history.map((item, index, data) => {
+        return this.fundHistory.map((item, index, data) => {
           var itemCopy = Object.assign({}, item);
           itemCopy['boughtDate'] = itemCopy['boughtDate'].toLocaleDateString();
           return itemCopy;
@@ -95,7 +84,7 @@ export default {
       }
   },
 
-  components: {Candidate},
+  components: {Candidate, FundHistory},
 
   methods: {
     handleSelect(index, path) {
@@ -248,7 +237,7 @@ export default {
     resetPage(){
       this.userName = '';
       this.shown = '1';
-      this.history = [];
+      this.fundHistory = [];
       this.candidates = [];
     },
     setUser(){
@@ -262,7 +251,7 @@ export default {
         return;
       }
       backend.getFundHistory().then(data => {
-        this.history = data;
+        this.fundHistory = data;
       })
     },
     getCandidates(){
@@ -289,7 +278,7 @@ export default {
     },
 
     insertHistory(row, suggestedAmount, actualAmount){
-      this.history.push({
+      this.fundHistory.push({
         'name': row['name'],
         'code': row['code'],
         'boughtDate': (new Date()),
