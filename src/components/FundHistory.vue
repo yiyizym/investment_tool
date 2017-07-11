@@ -14,12 +14,27 @@
     </el-table-column>
     <el-table-column prop="addUp" label="累计">
     </el-table-column>
+    <el-table-column v-show="isLogIned" fixed="right" label="操作" width="120">
+        <template scope="scope">
+            <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+        </template>
+    </el-table-column>
     </el-table>
 </template>
 
 <script>
 export default {
-  props: ['history'],
+  props: ['history','isLogIned'],
+
+  methods: {
+    handleDelete(row){
+      this
+        .$confirm(`你要删除（${row.boughtDate} 买入 ${row.code}）这条历史记录吗？`)
+        .then(_ => this.$emit('deleteHistory', row))
+        .catch(_ => this.$message({type: 'info',message: '你已取消'}))
+      
+    }
+  }
 }
 </script>
 

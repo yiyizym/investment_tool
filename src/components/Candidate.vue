@@ -65,10 +65,10 @@ export default {
                 inputPlaceholder: '至少是 100 的整百数字'
             }).then(({value}) => {
                 this.$emit('buy', row, suggestedAmount, value)
-            }).catch(() => {
+            }).catch(error => {
                 this.$message({
                     type: 'info',
-                    message: '你已取消买入'
+                    message: error
                 });
             });
         },

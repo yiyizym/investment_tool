@@ -11,7 +11,7 @@ export default {
             appKey: APP_KEY
         });
         this._user = new AV.User();
-        this._Fund = AV.Object.extend('Fund');
+        this._FundHistory = AV.Object.extend('Fund');
     },
 
     signUp(email, password){
@@ -19,10 +19,6 @@ export default {
         this._user.setEmail(email);
         this._user.setPassword(password);
         return this._user.signUp();
-        // .then(function (loginedUser) {
-        // }, (function (error) {
-        //     alert(JSON.stringify(error));
-        // }));
     },
     signIn(username, password){
         return AV.User.logIn(username, password);
@@ -37,7 +33,7 @@ export default {
         return AV.User.requestPasswordReset(email);
     },
     getFundHistory(){
-        var query = new AV.Query(this._Fund);
+        var query = new AV.Query(this._FundHistory);
         return query
                     .ascending('boughtDate')
                     .equalTo('dependent', this.getCurrentUser())
@@ -45,6 +41,7 @@ export default {
                     .then(resp => 
                             (resp.map(obj => 
                                         ({
+                                            'id': obj.get('objectId'),
                                             'name': obj.get('name'),
                                             'code': obj.get('code'),
                                             'boughtDate': obj.get('boughtDate'),
@@ -145,28 +142,26 @@ export default {
         return (new Date()).toISOString().slice(0,10).replace(/-/g,"");
     },
 
-    createFund(data, suggestedAmount, actualAmount){
-        var fund = new (this._Fund)();
-        fund.set('name', data.name);
-        fund.set('code', data.code);
-        fund.set('boughtDate', new Date());
-        fund.set('suggestedAmount', suggestedAmount);
-        fund.set('actualAmount', actualAmount);
-        fund.set('price', data.price);
-        fund.set('dependent', this.getCurrentUser());
+    createFundHistory(data, suggestedAmount, actualAmount){
+        var fundHistory = new (this._FundHistory)();
+        fundHistory.set('name', data.name);
+        fundHistory.set('code', data.code);
+        fundHistory.set('boughtDate', new Date());
+        fundHistory.set('suggestedAmount', suggestedAmount);
+        fundHistory.set('actualAmount', actualAmount);
+        fundHistory.set('price', data.price);
+        fundHistory.set('dependent', this.getCurrentUser());
 
         var acl = new AV.ACL();
         acl.setReadAccess(AV.User.current(),true);
         acl.setWriteAccess(AV.User.current(),true);
-        fund.setACL(acl);
+        fundHistory.setACL(acl);
         
-        return fund.save();
-        // .then(function (fund) {
-        //     // 成功保存之后，执行其他逻辑.
-        //     console.log('New object created with objectId: ' + fund.id);
-        // }, function (error) {
-        //     // 异常处理
-        //     console.error('Failed to create new object, with error message: ' + error.message);
-        // });
+        return fundHistory.save();
+    },
+
+    deleteFundHistory(id){
+        var fundHistory = AV.Object.createWithoutData('Fund', id);
+        return fundHistory.destroy();      
     }
 }

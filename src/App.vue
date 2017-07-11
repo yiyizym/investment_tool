@@ -25,6 +25,8 @@
         <div class="content" v-show="shown == '1'">
           <FundHistory
             :history="record"
+            :isLogIned="isLogIned"
+            v-on:deleteHistory="deleteHistory"
             border
             style="width: 100%"></FundHistory>
         </div>
@@ -263,9 +265,10 @@ export default {
       })
     },
     buy(row, suggestedAmount, actualAmount){
+      debugger
       backend
-        .createFund(row, suggestedAmount, actualAmount)
-        .then(fund => {
+        .createFundHistory(row, suggestedAmount, actualAmount)
+        .then(fundHistory => {
           this.insertHistory(row, suggestedAmount, actualAmount);
           this.$message({
               type: 'success',
@@ -286,6 +289,22 @@ export default {
         'actualAmount': actualAmount,
         'price': row['price']
       })
+    },
+
+    deleteHistory(data){
+      console.log(data);
+      backend
+        .deleteFundHistory(data['id'])
+        .then(_ => {
+          debugger
+          // this.fundHistory.splice(index, 1);
+          //TODO
+          this.$message({
+            type: 'success',
+            message: '删除成功'
+          })
+        })
+        .catch(error => console.error)
     }
   }
 
