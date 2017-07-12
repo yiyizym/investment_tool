@@ -16,13 +16,14 @@
     </el-table-column>
     <el-table-column v-show="isLogIned" fixed="right" label="操作" width="120">
         <template scope="scope">
-            <el-button @click="handleDelete(scope.row)" type="text" size="small">删除</el-button>
+            <el-button @click="handleDelete(scope.row)" v-show="inOneMonth(scope.row)" type="text" size="small">删除</el-button>
         </template>
     </el-table-column>
     </el-table>
 </template>
 
 <script>
+import util from '../util.js';
 export default {
   props: ['history','isLogIned'],
 
@@ -33,6 +34,9 @@ export default {
         .then(_ => this.$emit('deleteHistory', row))
         .catch(_ => this.$message({type: 'info',message: '你已取消'}))
       
+    },
+    inOneMonth(data){
+      return util.getMonthsElapsed((new Date(data['boughtDate'])), new Date()) == 0;
     }
   }
 }

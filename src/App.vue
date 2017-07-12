@@ -265,7 +265,6 @@ export default {
       })
     },
     buy(row, suggestedAmount, actualAmount){
-      debugger
       backend
         .createFundHistory(row, suggestedAmount, actualAmount)
         .then(fundHistory => {
