@@ -2,8 +2,8 @@
   <div id="app">
     <header>
       <div class="container">
-        <h1 class="title">Logo</h1>
-        <span class="wrapper">
+        <h1 class="title" @click="showFrontPage = true">Logo</h1>
+        <span class="wrapper" v-show="!showFrontPage">
           <el-button type="primary" v-show="!isLogIned" @click="handleSignIn">登录</el-button>
           <el-button type="primary" v-show="!isLogIned" @click="handleSignUp">注册</el-button>
           <el-button type="primary" v-show="isLogIned">{{userName}}</el-button>
@@ -12,33 +12,38 @@
       </div>
     </header>
     <main>
-      <el-row :gutter="20">
-      <el-col :span="4">
-        <el-menu :default-active="shown" @select="handleSelect">
-          <el-menu-item index="1">
-            <i class="el-icon-menu"></i>定投记录</el-menu-item>
-          <el-menu-item index="2">
-            <i class="el-icon-setting"></i>基金列表</el-menu-item>
-        </el-menu>
-      </el-col>
-      <el-col :span="20">
-        <div class="content" v-show="shown == '1'">
-          <FundHistory
-            :history="record"
-            :isLogIned="isLogIned"
-            v-on:deleteHistory="deleteHistory"
-            border
-            style="width: 100%"></FundHistory>
-        </div>
-        <div class="content" v-show="shown == '2'">
-          <Candidate
-            :candidates="candidates" 
-            :history="fundHistory"
-            :isLogIned="isLogIned"
-            v-on:buy="buy"></Candidate>
-        </div>
-      </el-col>
-    </el-row>
+      <template v-if="showFrontPage">
+        <Typing v-on:tryToUse="tryToUse"></Typing>
+      </template>
+      <template v-else>
+        <el-row :gutter="20">
+          <el-col :span="4">
+            <el-menu :default-active="shown" @select="handleSelect">
+              <el-menu-item index="1">
+                <i class="el-icon-menu"></i>定投记录</el-menu-item>
+              <el-menu-item index="2">
+                <i class="el-icon-setting"></i>基金列表</el-menu-item>
+            </el-menu>
+          </el-col>
+          <el-col :span="20">
+            <div class="content" v-show="shown == '1'">
+              <FundHistory
+                :history="record"
+                :isLogIned="isLogIned"
+                v-on:deleteHistory="deleteHistory"
+                border
+                style="width: 100%"></FundHistory>
+            </div>
+            <div class="content" v-show="shown == '2'">
+               <Candidate
+                :candidates="candidates" 
+                :history="fundHistory"
+                :isLogIned="isLogIned"
+                v-on:buy="buy"></Candidate> 
+            </div>
+          </el-col>
+        </el-row>
+      </template>
     </main>
   </div>
 </template>
@@ -49,6 +54,7 @@ import SignUp from './components/SignUp.vue';
 import SignIn from './components/SignIn.vue';
 import Candidate from './components/Candidate.vue';
 import FundHistory from './components/FundHistory.vue';
+import Typing from './components/Typing.vue';
 
 export default {
   data() {
@@ -56,7 +62,8 @@ export default {
       userName: '',
       shown: '',
       fundHistory: [],
-      candidates: []
+      candidates: [],
+      showFrontPage: true
     }
   },
 
@@ -86,7 +93,7 @@ export default {
       }
   },
 
-  components: {Candidate, FundHistory},
+  components: {Candidate, FundHistory, Typing},
 
   methods: {
     handleSelect(index, path) {
@@ -304,7 +311,12 @@ export default {
           })
         })
         .catch(error => console.error)
+    },
+
+    tryToUse(){
+      this.showFrontPage = false;
     }
+
   }
 
 }
@@ -328,6 +340,10 @@ export default {
   }
   header .container h1 {
     color: #fff;
+  }
+
+  header .title {
+    cursor: pointer;
   }
 
   main {
