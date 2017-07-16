@@ -10,7 +10,7 @@
 
 const defaultOpt = {
     loop: true,
-    sentenceTime: 3000,
+    charTime: 600,
     sentencePauseTime: 1000
 }
 
@@ -29,20 +29,21 @@ class YaType {
 
         function generateStyle(){
             let style = document.createElement('style'),
-                css = '.yatype__cursor { \
-                        color: black;\
-                        font-weight: bolder;\
-                        font-style: normal;\
-                        animation: flashing 0.5s steps(2) infinite; \
-                    } \
-                    @keyframes flashing { \
-                        0% { \
-                            opacity: 0; \
-                        };\
-                        100% {\
-                            opacity: 1;\
-                        }\
-                    }';
+                css = [
+                    '.yatype__cursor {',
+                        'color: black;',
+                        'font-weight: bolder;',
+                        'font-style: normal;',
+                        'animation: 1s flashing step-end infinite;',
+                        '}',
+                    '@keyframes flashing {',
+                        '0%, 100% {',
+                            'color: black;',
+                        '}',
+                        '50% {',
+                            'color: transparent',
+                        '}',
+                    '}'].join('\n');
                 
             style.setAttribute('name', 'yatype');
             style.type = 'text/css';
@@ -69,9 +70,6 @@ class YaType {
         }
         this.typing(strings[this.currentIndex]['content']);
         this.currentIndex += 1;
-        setTimeout(_ => {
-            this.walk();
-        }, this.opt.sentenceTime + this.opt.sentencePauseTime);
     }
 
     typing(content){
@@ -80,15 +78,15 @@ class YaType {
             prevContent = this.getPrevContent(),
             {bPart, mPart, aPart} = this.splitSentence(prevContent, content),
             chars = mPart.split(''),
-            charTime = this.opt.sentenceTime / chars.length,
             curStr = '';
         function type(){
             if(index == chars.length){
+                self.walk();
                 return;
             }
             curStr += chars[index++];
             self.el.innerHTML = self.moveCursor(bPart,curStr, aPart);
-            setTimeout(type, charTime);
+            setTimeout(type, self.opt.charTime);
         }
 
         type();
