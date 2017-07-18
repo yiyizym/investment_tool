@@ -11,6 +11,7 @@
 const defaultOpt = {
     loop: true,
     charTime: 600,
+    moveBackTime: 500,
     sentencePauseTime: 1000
 }
 
@@ -57,19 +58,47 @@ class YaType {
     }
 
     walk(){
-        this.currentIndex = this.currentIndex || 0;
+        this.currentCentenceIndex = this.currentCentenceIndex || 0;
         this.cursorPositioin = this.cursorPositioin || 0;
         let strings = this.opt.strings;
-        if(this.currentIndex == strings.length){
+        if(this.currentCentenceIndex == strings.length){
             if(this.opt.loop){
-                this.currentIndex = 0;
+                this.currentCentenceIndex = 0;
                 this.setCursor();
             }else{
                 return;
             }
         }
-        this.typing(strings[this.currentIndex]['content']);
-        this.currentIndex += 1;
+        this.moveBackCursor(this.currentCentenceIndex, this.typing.bind(this));
+    }
+
+    moveBackCursor(centenceIndex, callback){
+        var self = this;
+        if(centenceIndex == 0){
+            callback(this.opt.strings[centenceIndex]['content']);
+        } else {
+            var prevContent = this.opt.strings[centenceIndex - 1]['content'];
+            var currContent = this.opt.strings[centenceIndex]['content'];
+            var lastSameCharIndex = 0;
+            while(prevContent[lastSameCharIndex] == currContent[lastSameCharIndex]){
+                lastSameCharIndex ++;
+            }
+            moveBack(lastSameCharIndex, prevContent.length);
+        }
+
+        function moveBack(lastIndex, currIndex){
+            var arr = prevContent.split('');
+            arr.splice(currIndex, 0, '<i class="yatype__cursor">|</i>');
+            self.el.innerHTML = arr.join('');
+            if(currIndex != lastIndex){
+                setTimeout(function(){
+                    moveBack(lastIndex, currIndex - 1);
+                }, self.opt.moveBackTime);
+            } else {
+                callback.call(self,self.opt.strings[centenceIndex]['content']);
+            }
+
+        }
     }
 
     typing(content){
@@ -81,6 +110,7 @@ class YaType {
             curStr = '';
         function type(){
             if(index == chars.length){
+                self.currentCentenceIndex += 1;
                 self.walk();
                 return;
             }
@@ -93,7 +123,7 @@ class YaType {
     }
 
     getPrevContent(){
-        return this.currentIndex && this.opt.strings[this.currentIndex-1]['content'] || '';
+        return this.currentCentenceIndex && this.opt.strings[this.currentCentenceIndex-1]['content'] || '';
     }
 
     moveCursor(bPart,curStr, aPart){
