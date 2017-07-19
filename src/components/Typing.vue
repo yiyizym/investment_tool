@@ -11,7 +11,7 @@
 const defaultOpt = {
     loop: true,
     charTime: 600,
-    moveBackTime: 500,
+    moveBackTime: 300,
     sentencePauseTime: 1000
 }
 
@@ -19,6 +19,7 @@ class YaType {
     constructor(el, option){
         this.el = document.querySelector(el);
         this.opt = Object.assign({}, defaultOpt, JSON.parse(JSON.stringify(option)));
+        this.currentCentenceIndex = 0;        
         this.setCursor();
         this.walk();
     }
@@ -58,8 +59,6 @@ class YaType {
     }
 
     walk(){
-        this.currentCentenceIndex = this.currentCentenceIndex || 0;
-        this.cursorPositioin = this.cursorPositioin || 0;
         let strings = this.opt.strings;
         if(this.currentCentenceIndex == strings.length){
             if(this.opt.loop){
@@ -69,43 +68,61 @@ class YaType {
                 return;
             }
         }
-        this.moveBackCursor(this.currentCentenceIndex, this.typing.bind(this));
+        this.moveBackCursor();
     }
 
-    moveBackCursor(centenceIndex, callback){
+    moveBackCursor(){
         var self = this;
-        if(centenceIndex == 0){
-            callback(this.opt.strings[centenceIndex]['content']);
+        if(this.currentCentenceIndex == 0){
+            self.typing();
         } else {
-            var prevContent = this.opt.strings[centenceIndex - 1]['content'];
-            var currContent = this.opt.strings[centenceIndex]['content'];
+            moveBack(getLastSameCharIndex());
+        }
+
+        function getLastSameCharIndex(){
+            var prevContent = self.prevSentence();
+            var currContent = self.currSentence();
             var lastSameCharIndex = 0;
             while(prevContent[lastSameCharIndex] == currContent[lastSameCharIndex]){
                 lastSameCharIndex ++;
             }
-            moveBack(lastSameCharIndex, prevContent.length);
+            return lastSameCharIndex;
         }
 
-        function moveBack(lastIndex, currIndex){
-            var arr = prevContent.split('');
-            arr.splice(currIndex, 0, '<i class="yatype__cursor">|</i>');
+        function moveBack(lastIndex){
+            var arr = self.prevSentence().split('');
+            arr.splice(self.cursorPositioin, 0, '<i class="yatype__cursor">|</i>');
             self.el.innerHTML = arr.join('');
-            if(currIndex != lastIndex){
+            if(self.cursorPositioin != lastIndex){
                 setTimeout(function(){
-                    moveBack(lastIndex, currIndex - 1);
+                    self.cursorPositioin -= 1
+                    moveBack(lastIndex);
                 }, self.opt.moveBackTime);
             } else {
-                callback.call(self,self.opt.strings[centenceIndex]['content']);
+                self.typing();
             }
 
         }
     }
 
-    typing(content){
+    prevSentence(){
+        if(this.currentCentenceIndex){
+            return this.opt.strings[this.currentCentenceIndex - 1]['content'];
+        } else {
+            return '';
+        }
+    }
+
+    currSentence(){
+        return this.opt.strings[this.currentCentenceIndex]['content'];
+    }
+
+    typing(){
         let index = 0,
             self = this,
-            prevContent = this.getPrevContent(),
-            {bPart, mPart, aPart} = this.splitSentence(prevContent, content),
+            prevContent = this.prevSentence(),
+            currContent = this.currSentence(),
+            {bPart, mPart, aPart} = this.splitSentence(prevContent, currContent),
             chars = mPart.split(''),
             curStr = '';
         function type(){
@@ -122,17 +139,18 @@ class YaType {
         type();
     }
 
-    getPrevContent(){
-        return this.currentCentenceIndex && this.opt.strings[this.currentCentenceIndex-1]['content'] || '';
-    }
-
     moveCursor(bPart,curStr, aPart){
+        this.cursorPositioin = bPart.length + curStr.length;
         return bPart + curStr + '<i class="yatype__cursor">|</i>' + aPart;
     }
 
     splitSentence(prev, current){
         if(!prev){
             return {bPart: '', mPart: current, aPart: ''};
+        }
+        if(prev == current){
+            console.error('two sentence is the same');
+            return {bPart: current, mPart: '', aPart: ''};
         }
         let index = 0;
         while(prev[index] == current[index]){
