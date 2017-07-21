@@ -12,6 +12,7 @@ const defaultOpt = {
     loop: true,
     charTime: 600,
     moveBackTime: 300,
+    deleteBackTime: 300,
     sentencePauseTime: 1000
 }
 
@@ -59,16 +60,26 @@ class YaType {
     }
 
     walk(){
-        let strings = this.opt.strings;
-        if(this.currentCentenceIndex == strings.length){
-            if(this.opt.loop){
-                this.currentCentenceIndex = 0;
-                this.setCursor();
+        var self = this,
+            strings = self.opt.strings;
+        if(self.currentCentenceIndex == strings.length){
+            if(self.opt.loop){
+                self.currentCentenceIndex = 0;
+                self.setCursor();
             }else{
                 return;
             }
         }
-        this.moveBackCursor();
+        switch (self.opt.effect) {
+            case 'back':
+                self.moveBackCursor();
+                break;
+            case 'delete':
+                self.deleteBackCursor();
+                break;
+            default:
+                self.moveBackCursor();
+        }
     }
 
     moveBackCursor(){
@@ -76,30 +87,58 @@ class YaType {
         if(this.currentCentenceIndex == 0){
             self.typing();
         } else {
-            moveBack(getLastSameCharIndex());
+            moveBack();
         }
 
-        function getLastSameCharIndex(){
-            var prevContent = self.prevSentence();
-            var currContent = self.currSentence();
-            var lastSameCharIndex = 0;
-            while(prevContent[lastSameCharIndex] == currContent[lastSameCharIndex]){
-                lastSameCharIndex ++;
-            }
-            return lastSameCharIndex;
-        }
-
-        function moveBack(lastIndex){
+        function moveBack(){
             var arr = self.prevSentence().split('');
             arr.splice(self.cursorPositioin, 0, '<i class="yatype__cursor">|</i>');
             self.el.innerHTML = arr.join('');
-            if(self.cursorPositioin != lastIndex){
+            if(self.cursorPositioin != self.getLastSameCharIndex()){
                 setTimeout(function(){
                     self.cursorPositioin -= 1
-                    moveBack(lastIndex);
+                    moveBack();
                 }, self.opt.moveBackTime);
             } else {
                 self.typing();
+            }
+
+        }
+    }
+
+    getLastSameCharIndex(){
+        var self = this;
+        var prevContent = self.prevSentence();
+        var currContent = self.currSentence();
+        var lastSameCharIndex = 0;
+        while(
+                prevContent[lastSameCharIndex] &&
+                currContent[lastSameCharIndex] &&
+                prevContent[lastSameCharIndex] == currContent[lastSameCharIndex]
+            ){
+            lastSameCharIndex ++;
+        }
+        return lastSameCharIndex;
+    }
+
+    deleteBackCursor(){
+        var self = this;
+        if(this.currentCentenceIndex == 0){
+            self.deleteTyping();
+        } else {
+            var prevSentenceCopy = self.prevSentence();
+            deleteBack(prevSentenceCopy);
+        }
+
+        function deleteBack(sentenceToDelete){
+            self.el.innerHTML = sentenceToDelete + '<i class="yatype__cursor">|</i>';
+            if(self.cursorPositioin != self.getLastSameCharIndex()){
+                setTimeout(function(){
+                    self.cursorPositioin -= 1
+                    deleteBack(sentenceToDelete.slice(0,sentenceToDelete.length - 1));
+                }, self.opt.deleteBackTime);
+            } else {
+                self.deleteTyping();
             }
 
         }
@@ -139,6 +178,27 @@ class YaType {
         type();
     }
 
+    deleteTyping(){
+        var self = this,
+            index = 0, 
+            currContent = this.currSentence(),
+            chars = currContent.slice(self.getLastSameCharIndex()),
+            curStr = currContent.slice(0, self.getLastSameCharIndex());
+        function type(){
+            if(index == chars.length){
+                self.currentCentenceIndex += 1;
+                self.walk();
+                return;
+            }
+            curStr += chars[index++];
+            self.cursorPositioin = curStr.length;
+            self.el.innerHTML = curStr + '<i class="yatype__cursor">|</i>';
+            setTimeout(type, self.opt.charTime);
+        }
+
+        type();
+    }
+
     moveCursor(bPart,curStr, aPart){
         this.cursorPositioin = bPart.length + curStr.length;
         return bPart + curStr + '<i class="yatype__cursor">|</i>' + aPart;
@@ -152,10 +212,7 @@ class YaType {
             console.error('two sentence is the same');
             return {bPart: current, mPart: '', aPart: ''};
         }
-        let index = 0;
-        while(prev[index] == current[index]){
-            index++;
-        }
+        let index = this.getLastSameCharIndex();
         let bPart = prev.slice(0, index);
         let aPart = prev.slice(index, prev.length);
         let inverseIndex = current.lastIndexOf(aPart);
