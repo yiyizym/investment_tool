@@ -8,6 +8,7 @@
     "build": "rimraf dist && webpack -p --progress --hide-modules"
   },
   "dependencies": {
+    "yatype": "yiyizym/yatype",
     "element-ui": "^1.1.2",
     "jquery": "^3.2.1",
     "leancloud-storage": "^3.0.1",
