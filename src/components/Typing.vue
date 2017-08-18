@@ -29,6 +29,11 @@ export default {
     }
 }
 </script>
-<style>
 
+<style scoped>
+    .typing {
+        height: 200px;
+        line-height: 200px;
+        font-size: 30px;
+    }
 </style>
