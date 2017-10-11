@@ -69,7 +69,7 @@ export default {
                             ({
                                 'name': obj.get('name'),
                                 'code': obj.get('code'),
-                                'date': obj.get('date'),
+                                'updatedAt': obj.get('updatedAt'),
                                 'priceToEarningRate': obj.get('priceToEarningRate')
                             })
                         );

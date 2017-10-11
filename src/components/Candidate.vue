@@ -1,6 +1,6 @@
 <template>
     <el-table :data="recommend" :row-class-name="tableRowClassName" border style="width: 100%">
-        <el-table-column fixed prop="date" label="日期">
+        <el-table-column fixed prop="updatedAt" label="日期">
         </el-table-column>
         <el-table-column prop="name" label="名称">
         </el-table-column>
@@ -29,7 +29,7 @@ export default {
             var newItem = {};
             return this.candidates.map(function (item, index, data) {
                 newItem = Object.assign({}, item);
-                newItem['date'] = newItem['date'].toLocaleDateString();
+                newItem['updatedAt'] = newItem['updatedAt'].toLocaleDateString();
                 newItem['earningToPrice'] = newItem['earningToPrice'].toFixed(2);
                 return newItem;
             });
